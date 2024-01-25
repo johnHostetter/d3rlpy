@@ -1,10 +1,13 @@
 import dataclasses
 from typing import Dict
 
+# pip install etils[edc]
+# from etils import edc
 import torch
 from torch import nn
 from torch.optim import Optimizer
 
+from experiments.frequent_but_discernible.nas_utils import my_sync
 from ....dataclass_utils import asdict_as_float
 from ....models.torch import DiscreteEnsembleQFunctionForwarder
 from ....torch_utility import Modules, TorchMiniBatch, hard_sync
@@ -15,6 +18,7 @@ from .utility import DiscreteQFunctionMixin
 __all__ = ["DQNImpl", "DQNModules", "DQNLoss", "DoubleDQNImpl"]
 
 
+# @edc.dataclass(allow_unfrozen=True)  # Add the `unfrozen()`/`frozen` method
 @dataclasses.dataclass(frozen=True)
 class DQNModules(Modules):
     q_funcs: nn.ModuleList
@@ -55,11 +59,9 @@ class DQNImpl(DiscreteQFunctionMixin, QLearningAlgoImplBase):
         self._q_func_forwarder = q_func_forwarder
         self._targ_q_func_forwarder = targ_q_func_forwarder
         self._target_update_interval = target_update_interval
-        hard_sync(modules.targ_q_funcs, modules.q_funcs)
+        my_sync(modules.targ_q_funcs, modules.q_funcs)
 
-    def inner_update(
-        self, batch: TorchMiniBatch, grad_step: int
-    ) -> Dict[str, float]:
+    def inner_update(self, batch: TorchMiniBatch, grad_step: int) -> Dict[str, float]:
         self._modules.optim.zero_grad()
 
         q_tpn = self.compute_target(batch)
@@ -108,7 +110,7 @@ class DQNImpl(DiscreteQFunctionMixin, QLearningAlgoImplBase):
         return self.inner_predict_best_action(x)
 
     def update_target(self) -> None:
-        hard_sync(self._modules.targ_q_funcs, self._modules.q_funcs)
+        my_sync(self._modules.targ_q_funcs, self._modules.q_funcs)
 
     @property
     def q_function(self) -> nn.ModuleList:
