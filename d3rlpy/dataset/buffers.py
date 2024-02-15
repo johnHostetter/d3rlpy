@@ -1,6 +1,8 @@
 from collections import deque
 from typing import Deque, List, Sequence, Tuple
 
+import torch
+
 from typing_extensions import Protocol
 
 from .components import EpisodeBase
@@ -8,7 +10,7 @@ from .components import EpisodeBase
 __all__ = ["BufferProtocol", "InfiniteBuffer", "FIFOBuffer"]
 
 
-class BufferProtocol(Protocol):
+class BufferProtocol(torch.utils.data.Dataset):
     r"""Interface of Buffer."""
 
     def append(self, episode: EpisodeBase, index: int) -> None:
@@ -36,6 +38,9 @@ class BufferProtocol(Protocol):
         Returns:
             Number of transitions.
         """
+        raise NotImplementedError
+
+    def __len__(self) -> int:
         raise NotImplementedError
 
     def __getitem__(self, index: int) -> Tuple[EpisodeBase, int]:

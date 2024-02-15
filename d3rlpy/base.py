@@ -85,6 +85,10 @@ class ImplBase(metaclass=ABCMeta):
     @property
     def modules(self) -> Modules:
         return self._modules
+    
+    @modules.setter
+    def modules(self, modules: Modules) -> None:
+        self._modules = modules
 
     def wrap_models_by_ddp(self) -> None:
         self._modules = self._modules.wrap_models_by_ddp()

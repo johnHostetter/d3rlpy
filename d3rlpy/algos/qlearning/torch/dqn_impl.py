@@ -119,6 +119,10 @@ class DQNImpl(DiscreteQFunctionMixin, QLearningAlgoImplBase):
     @property
     def q_function_optim(self) -> Optimizer:
         return self._modules.optim
+    
+    @q_function_optim.setter
+    def q_function_optim(self, optim: Optimizer) -> None:
+        self._modules.optim = optim
 
 
 class DoubleDQNImpl(DQNImpl):

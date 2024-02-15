@@ -501,6 +501,19 @@ class QLearningAlgoBase(
         # save hyperparameters
         save_config(self, logger)
 
+        def custom_collate(batch):
+            # batch is a list of your custom data samples
+            return batch 
+
+        # make a dataloader
+        buffer_dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self._config.batch_size,
+            shuffle=True,
+            collate_fn=custom_collate,
+        )
+        from d3rlpy.dataset.buffers import InfiniteBuffer
+
         # training loop
         n_epochs = n_steps // n_steps_per_epoch
         total_step = 0
@@ -514,13 +527,16 @@ class QLearningAlgoBase(
                 desc=f"Epoch {int(epoch)}/{n_epochs}",
             )
 
-            for itr in range_gen:
+            for itr, batch in enumerate(buffer_dataloader):
                 with logger.measure_time("step"):
                     # pick transitions
                     with logger.measure_time("sample_batch"):
-                        batch = dataset.sample_transition_batch(
-                            self._config.batch_size
-                        )
+                        batch = ReplayBuffer(
+                            episodes=[episode[0] for episode in batch], buffer=InfiniteBuffer()
+                        ).sample_transition_batch(self._config.batch_size)
+                        # batch = batch.sample_transition_batch(
+                        #     self._config.batch_size
+                        # )
 
                     # update parameters
                     with logger.measure_time("algorithm_update"):

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import BinaryIO, List, Optional, Sequence, Type, Union
+from typing import BinaryIO, List, Optional, Sequence, Type, Union, Tuple
 
 import numpy as np
 
@@ -380,12 +380,12 @@ class ReplayBuffer(ReplayBufferBase):
                     "Either episodes or env must be provided to determine signatures."
                     " Or specify signatures directly."
                 )
-            LOG.info(
-                "Signatures have been automatically determined.",
-                observation_signature=observation_signature,
-                action_signature=action_signature,
-                reward_signature=reward_signature,
-            )
+            # LOG.info(
+            #     "Signatures have been automatically determined.",
+            #     observation_signature=observation_signature,
+            #     action_signature=action_signature,
+            #     reward_signature=reward_signature,
+            # )
 
         if action_space is None:
             if episodes:
@@ -397,10 +397,10 @@ class ReplayBuffer(ReplayBufferBase):
                     "Either episodes or env must be provided to determine action_space."
                     " Or specify action_space directly."
                 )
-            LOG.info(
-                "Action-space has been automatically determined.",
-                action_space=action_space,
-            )
+            # LOG.info(
+            #     "Action-space has been automatically determined.",
+            #     action_space=action_space,
+            # )
 
         if action_size is None:
             if episodes:
@@ -420,10 +420,10 @@ class ReplayBuffer(ReplayBufferBase):
                     "Either episodes or env must be provided to determine action_space."
                     " Or specify action_size directly."
                 )
-            LOG.info(
-                "Action size has been automatically determined.",
-                action_size=action_size,
-            )
+            # LOG.info(
+            #     "Action size has been automatically determined.",
+            #     action_size=action_size,
+            # )
 
         self._buffer = buffer
         self._writer = ExperienceWriter(
@@ -447,6 +447,12 @@ class ReplayBuffer(ReplayBufferBase):
         if episodes:
             for episode in episodes:
                 self.append_episode(episode)
+
+    def __len__(self) -> int:
+        return len(self._buffer)
+    
+    def __getitem__(self, index: int) -> Tuple[EpisodeBase, int]:
+        return self._buffer[index]
 
     def append(
         self,
